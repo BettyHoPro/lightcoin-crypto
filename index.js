@@ -3,9 +3,18 @@ class Account {
 
   constructor(username) {
     this.username = username;
-    this.balance = 0;
+    //this.balance = 0;
+    this.transaction = [];
   }
 
+  get balance() {
+    let balance = 0;
+    return balance += this.transaction.map(trans => trans.value).reduce((a, b) => a + b);
+  }
+
+  addTransaction(transaction) {
+    this.transaction.push(transaction);
+  }
 }
 
 class Transaction {
@@ -16,7 +25,15 @@ class Transaction {
   }
 
   commit() {
-    this.account.balance += this.value;
+    if (!this.isAllowed()) {
+      console.log(`Your remaining balance is ${this.account.balance} ca, you don't have enough money to withdraw ${this.amount} ca.`);
+      return false;
+    }
+    //this.account.balance += this.value;
+    this.time = new Date();
+    this.account.addTransaction(this);
+    console.log(`Congratulations! You ${this.value > 0 ? "deposit" : "withdraw"} ${this.amount} ca successfully. Your account balance is ${this.account.balance} ca.`);
+    return true;
   }
 
 }
@@ -30,6 +47,10 @@ class Withdrawal extends Transaction {
     return -this.amount;
   }
 
+  isAllowed() {
+    return (this.account.balance - this.amount >= 0);
+  }
+
 }
 
 class Deposit extends Transaction {
@@ -41,6 +62,9 @@ class Deposit extends Transaction {
     return this.amount;
   }
 
+  isAllowed() {
+    return true;
+  }
 }
 
 
@@ -50,7 +74,7 @@ class Deposit extends Transaction {
 // We use the code below to "drive" the application logic above and make sure it's working as expected
 const my1Account = new Account('billybob');
 
-console.log('Starting Balance:', my1Account.balance);
+//console.log('Starting Balance:', my1Account.balance);
 
 const t11 = new Deposit(120.00, my1Account);
 t11.commit();
@@ -58,6 +82,10 @@ t11.commit();
 const t21 = new Withdrawal(50.00, my1Account);
 t21.commit();
 
+const t31 = new Withdrawal(150.00, my1Account);
+t31.commit();
+
+//console.log('Ending Balance:', my1Account.transaction);
 console.log('Ending Balance:', my1Account.balance);
 
 console.log("=================");
